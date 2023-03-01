@@ -14,27 +14,26 @@ impl<const N: usize> AsymetricallyEncryptedBit<N> {
 
 impl<const N: usize> AsymetricEncryption for AsymetricallyEncryptedBit<N> {
 	type MessageType = bool;
-	type PublicKeyType = SymetricallyEncryptedBit;
+	type PublicKeyType = [SymetricallyEncryptedBit; N];
 	type PrivateKeyType = BigInt;
 
 	fn key_gen() -> (Self::PublicKeyType, Self::PrivateKeyType) {
 		let sk = SymetricallyEncryptedBit::key_gen();
 
-		let mut pk = SymetricallyEncryptedBit::encrypt(false, &sk);
-
-		for _ in 0..N {
-			pk = (&pk + &SymetricallyEncryptedBit::encrypt(false, &sk)).unwrap();
-		}
+		let pk: [SymetricallyEncryptedBit; N] = core::array::from_fn(|_| SymetricallyEncryptedBit::encrypt(false, &sk));
 
 		return (pk, sk);
 	}
 
-	fn encrypt(m: bool, p: &SymetricallyEncryptedBit) -> Self {
-		let mut ret = p.cipher();
+	fn encrypt(m: bool, p: &Self::PublicKeyType) -> Self {
+		let mut ret = p[0].cipher();
+		for i in 1..N {
+			ret = ret + &p[i].cipher();
+		}
 		if m {
 			ret += 1;
 		}
-		return AsymetricallyEncryptedBit::new(SymetricallyEncryptedBit::new(ret, p.noise()));
+		return AsymetricallyEncryptedBit::new(SymetricallyEncryptedBit::new(ret, N*p[0].noise()));
 	}
 
 	fn decrypt(&self, sk: &BigInt) -> bool {
