@@ -132,3 +132,20 @@ fn asymetric_mutiplication() {
 	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), true);
 }
 
+#[test]
+#[should_panic]
+fn noise_blowup() {
+	let p = SymetricallyEncryptedBit::key_gen();
+
+	let mut c1 = SymetricallyEncryptedBit::encrypt(true, &p);
+	let mut c2 = SymetricallyEncryptedBit::encrypt(true, &p);
+
+	while let Some(c) = &c1 * &c2 {
+		c1 = c.clone();
+		c2 = c.clone();
+	}
+
+	let none = &c1 * &c2;
+	assert_eq!(none.unwrap().decrypt(&p), true);
+}
+

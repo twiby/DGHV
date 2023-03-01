@@ -14,13 +14,14 @@ fn key_size() -> BigInt {
 	return min
 }
 
-fn initial_noise_size() -> BigInt {
+pub fn initial_noise_size() -> BigInt {
 	let root = (ETA as f64).sqrt() as usize;
 	let mut min = 2.to_bigint().unwrap();
 	min = min.pow((root-1).try_into().unwrap());
 	return min
 }
 
+#[derive(Clone)]
 pub struct SymetricallyEncryptedBit {
 	c: BigInt,
 	noise_size: BigInt
