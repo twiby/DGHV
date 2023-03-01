@@ -18,7 +18,7 @@ fn key_size() -> BigInt {
 	return min
 }
 
-fn noise_size() -> BigInt {
+fn initial_noise_size() -> BigInt {
 	let root = (ETA as f64).sqrt() as usize;
 	let mut min = 2.to_bigint().unwrap();
 	min = min.pow((root-1).try_into().unwrap());
@@ -53,8 +53,8 @@ impl SymetricallyEncryptedBit {
 		};
 
 		// r is between -p/4 and p/4
-		let min_r = -noise_size();
-		let max_r = noise_size();
+		let min_r = -initial_noise_size();
+		let max_r = initial_noise_size();
 		let mut rng = rand::thread_rng();
 		let r = rng.gen_bigint_range(&min_r, &max_r);
 
@@ -86,18 +86,22 @@ impl<'a> Add<&'a SymetricallyEncryptedBit> for &'a SymetricallyEncryptedBit {
 
 	fn add(self, other: &'a SymetricallyEncryptedBit) -> Self::Output {
 		let noise = &self.noise_size + &other.noise_size;
-		if noise > key_size()/2 {
+		if noise > key_size()/4 {
 			return None;
 		}
 		return Some(SymetricallyEncryptedBit::new(&self.c + &other.c, noise));
 	}
 }
-// impl<'a> Mul<&'a SymetricallyEncryptedBit>for &'a SymetricallyEncryptedBit {
-// 	type Output = SymetricallyEncryptedBit;
+impl<'a> Mul<&'a SymetricallyEncryptedBit>for &'a SymetricallyEncryptedBit {
+	type Output = Option<SymetricallyEncryptedBit>;
 
-// 	fn mul(self, other: &'a SymetricallyEncryptedBit) -> Self::Output {
-// 		return SymetricallyEncryptedBit::new(&self.c * &other.c)
-// 	}
-// }
+	fn mul(self, other: &'a SymetricallyEncryptedBit) -> Self::Output {
+		let noise = &self.noise_size * &other.noise_size;
+		if noise > key_size()/4 {
+			return None;
+		}
+		return Some(SymetricallyEncryptedBit::new(&self.c * &other.c, noise));
+	}
+}
 
 

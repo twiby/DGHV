@@ -58,3 +58,24 @@ fn addition() {
 	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), false);
 }
 
+#[test]
+fn mutiplication() {
+	let p = key_gen();
+
+	let mut c1 = SymetricallyEncryptedBit::encrypt(false, &p);
+	let mut c2 = SymetricallyEncryptedBit::encrypt(false, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), false);
+
+	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(false, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), false);
+
+	c1 = SymetricallyEncryptedBit::encrypt(false, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), false);
+
+	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), true);
+}
+
