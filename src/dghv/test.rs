@@ -1,7 +1,7 @@
 use num_bigint::ToBigInt;
 
-
-use crate::dghv::{ETA, key_gen, SymetricallyEncryptedBit};
+use crate::dghv::SymetricEncryption;
+use crate::dghv::{ETA, SymetricallyEncryptedBit};
 
 #[test]
 fn key_gen_test() {
@@ -11,7 +11,7 @@ fn key_gen_test() {
 	min = min.pow((ETA-1).try_into().unwrap());
 	max = max.pow((ETA).try_into().unwrap());
 
-	let key = key_gen();
+	let key = SymetricallyEncryptedBit::key_gen();
 
 	assert!(&key % 2 == 1.to_bigint().unwrap());
 	assert!(key >= min);
@@ -20,7 +20,7 @@ fn key_gen_test() {
 
 #[test]
 fn encrypt_test() {
-	let p = key_gen();
+	let p = SymetricallyEncryptedBit::key_gen();
 
 	let _ = SymetricallyEncryptedBit::encrypt(true, &p);
 	let _ = SymetricallyEncryptedBit::encrypt(false, &p);
@@ -28,7 +28,7 @@ fn encrypt_test() {
 
 #[test]
 fn decrypt_test() {
-	let p = key_gen();
+	let p = SymetricallyEncryptedBit::key_gen();
 
 	let t = SymetricallyEncryptedBit::encrypt(true, &p).decrypt(&p);
 	assert!(t == true);
@@ -39,7 +39,7 @@ fn decrypt_test() {
 
 #[test]
 fn addition() {
-	let p = key_gen();
+	let p = SymetricallyEncryptedBit::key_gen();
 
 	let mut c1 = SymetricallyEncryptedBit::encrypt(false, &p);
 	let mut c2 = SymetricallyEncryptedBit::encrypt(false, &p);
@@ -60,7 +60,7 @@ fn addition() {
 
 #[test]
 fn mutiplication() {
-	let p = key_gen();
+	let p = SymetricallyEncryptedBit::key_gen();
 
 	let mut c1 = SymetricallyEncryptedBit::encrypt(false, &p);
 	let mut c2 = SymetricallyEncryptedBit::encrypt(false, &p);

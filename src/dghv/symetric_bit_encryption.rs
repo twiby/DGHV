@@ -4,9 +4,22 @@ use num_traits::Zero;
 use num_bigint::{BigInt};
 use num_bigint::{ToBigInt, RandBigInt};
 
-use crate::dghv::key_size;
 use crate::dghv::ETA;
-use crate::dghv::initial_noise_size;
+use crate::dghv::SymetricEncryption;
+
+
+fn key_size() -> BigInt {
+	let mut min = 2.to_bigint().unwrap();
+	min = min.pow((ETA - 1).try_into().unwrap());
+	return min
+}
+
+fn initial_noise_size() -> BigInt {
+	let root = (ETA as f64).sqrt() as usize;
+	let mut min = 2.to_bigint().unwrap();
+	min = min.pow((root-1).try_into().unwrap());
+	return min
+}
 
 pub struct SymetricallyEncryptedBit {
 	c: BigInt,
@@ -17,8 +30,24 @@ impl SymetricallyEncryptedBit {
 	pub fn new(c: BigInt, n: BigInt) -> SymetricallyEncryptedBit {
 		SymetricallyEncryptedBit{c:c, noise_size:n}
 	}
+}
 
-	pub fn encrypt(message: bool, p: &BigInt) -> SymetricallyEncryptedBit {
+impl SymetricEncryption for SymetricallyEncryptedBit {
+	type KeyType = BigInt;
+	type MessageType = bool;
+
+	fn key_gen() -> BigInt {
+		let min = key_size();
+
+		let mut rng = rand::thread_rng();
+		let mut b = rng.gen_bigint_range(&BigInt::zero(), &min) + min;
+
+		if &b % 2 == BigInt::zero() { b += 1; }
+
+		return b;
+	}
+
+	fn encrypt(message: bool, p: &BigInt) -> SymetricallyEncryptedBit {
 		let bit = match message {
 			true => 1.to_bigint().unwrap(),
 			false => BigInt::zero()
@@ -32,13 +61,13 @@ impl SymetricallyEncryptedBit {
 
 		// q is of the order of 2^(ETA^3)
 		let mut min_q = 2.to_bigint().unwrap();
-		min_q = min_q.pow((ETA - 1).try_into().unwrap());
+		min_q = min_q.pow(ETA as u32);
 		let q = &min_q + rng.gen_bigint_range(&BigInt::zero(), &min_q);
 
 		return SymetricallyEncryptedBit::new(p*q + 2*r + bit, max_r);
 	}
 
-	pub fn decrypt(&self, p: &BigInt) -> bool {
+	fn decrypt(&self, p: &BigInt) -> bool {
 		let ret = (((&self.c+p/2) % p) - p/2) % 2;
 
 		if ret == BigInt::zero() {
