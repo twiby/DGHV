@@ -25,7 +25,7 @@ fn initial_noise_size() -> BigInt {
 	return min
 }
 
-fn key_gen() -> BigInt {
+pub fn key_gen() -> BigInt {
 	let min = key_size();
 
 	let mut rng = rand::thread_rng();
@@ -36,17 +36,17 @@ fn key_gen() -> BigInt {
 	return b;
 }
 
-struct SymetricallyEncryptedBit {
+pub struct SymetricallyEncryptedBit {
 	c: BigInt,
 	noise_size: BigInt
 }
 
 impl SymetricallyEncryptedBit {
-	fn new(c: BigInt, n: BigInt) -> SymetricallyEncryptedBit {
+	pub fn new(c: BigInt, n: BigInt) -> SymetricallyEncryptedBit {
 		SymetricallyEncryptedBit{c:c, noise_size:n}
 	}
 
-	fn encrypt(message: bool, p: &BigInt) -> SymetricallyEncryptedBit {
+	pub fn encrypt(message: bool, p: &BigInt) -> SymetricallyEncryptedBit {
 		let bit = match message {
 			true => 1.to_bigint().unwrap(),
 			false => BigInt::zero()
@@ -66,7 +66,7 @@ impl SymetricallyEncryptedBit {
 		return SymetricallyEncryptedBit::new(p*q + 2*r + bit, max_r);
 	}
 
-	fn decrypt(&self, p: &BigInt) -> bool {
+	pub fn decrypt(&self, p: &BigInt) -> bool {
 		let ret = (((&self.c+p/2) % p) - p/2) % 2;
 
 		if ret == BigInt::zero() {
