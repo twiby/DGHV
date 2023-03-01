@@ -31,11 +31,30 @@ fn decrypt_test() {
 	let p = key_gen();
 
 	let t = SymetricallyEncryptedBit::encrypt(true, &p).decrypt(&p);
-	println!("{:?}", t);
-	// assert!(t == true);
+	assert!(t == true);
 
 	let f = SymetricallyEncryptedBit::encrypt(false, &p).decrypt(&p);
-	println!("{:?}", f);
 	assert!(f == false);
+}
+
+#[test]
+fn addition() {
+	let p = key_gen();
+
+	let mut c1 = SymetricallyEncryptedBit::encrypt(false, &p);
+	let mut c2 = SymetricallyEncryptedBit::encrypt(false, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), false);
+
+	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(false, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), true);
+
+	c1 = SymetricallyEncryptedBit::encrypt(false, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), true);
+
+	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), false);
 }
 
