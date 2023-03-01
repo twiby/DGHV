@@ -30,6 +30,13 @@ impl SymetricallyEncryptedBit {
 	pub fn new(c: BigInt, n: BigInt) -> SymetricallyEncryptedBit {
 		SymetricallyEncryptedBit{c:c, noise_size:n}
 	}
+
+	pub fn cipher(&self) -> BigInt {
+		self.c.clone()
+	}
+	pub fn noise(&self) -> BigInt {
+		self.noise_size.clone()
+	}
 }
 
 impl SymetricEncryption for SymetricallyEncryptedBit {

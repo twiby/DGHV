@@ -1,7 +1,7 @@
 use num_bigint::ToBigInt;
 
-use crate::dghv::SymetricEncryption;
-use crate::dghv::{ETA, SymetricallyEncryptedBit};
+use crate::dghv::{SymetricEncryption, AsymetricEncryption};
+use crate::dghv::{ETA, SymetricallyEncryptedBit, AsymetricallyEncryptedBit};
 
 #[test]
 fn key_gen_test() {
@@ -34,6 +34,17 @@ fn decrypt_test() {
 	assert!(t == true);
 
 	let f = SymetricallyEncryptedBit::encrypt(false, &p).decrypt(&p);
+	assert!(f == false);
+}
+
+#[test]
+fn asymetric_decrypt_test() {
+	let (pk, sk) = AsymetricallyEncryptedBit::<10>::key_gen();
+
+	let t = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk).decrypt(&sk);
+	assert!(t == true);
+
+	let f = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk).decrypt(&sk);
 	assert!(f == false);
 }
 
@@ -77,5 +88,47 @@ fn mutiplication() {
 	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
 	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
 	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), true);
+}
+
+#[test]
+fn asymetric_addition() {
+	let (pk, sk) = AsymetricallyEncryptedBit::<10>::key_gen();
+
+	let mut c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	let mut c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), false);
+
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), true);
+
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), true);
+
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), false);
+}
+
+#[test]
+fn asymetric_mutiplication() {
+	let (pk, sk) = AsymetricallyEncryptedBit::<10>::key_gen();
+
+	let mut c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	let mut c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), false);
+
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), false);
+
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), false);
+
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), true);
 }
 
