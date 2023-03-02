@@ -7,7 +7,7 @@ const RHO: usize = 27;
 const ETA: usize = 1026;
 const GAMMA: usize = 150000;
 
-trait SymetricEncryption {
+pub trait SymetricEncryption {
 	type KeyType;
 	type MessageType;
 
@@ -16,7 +16,7 @@ trait SymetricEncryption {
 	fn decrypt(&self, key: &Self::KeyType) -> Self::MessageType;
 }
 
-trait AsymetricEncryption {
+pub trait AsymetricEncryption {
 	type PublicKeyType;
 	type PrivateKeyType;
 	type MessageType;

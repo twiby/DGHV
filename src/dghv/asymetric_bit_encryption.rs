@@ -1,7 +1,8 @@
 use core::ops::{Add, Mul};
 
 use rand::Rng;
-use num_bigint::{BigInt, RandBigInt};
+use num_traits::Zero;
+use num_bigint::RandBigInt;
 
 use crate::dghv::{AsymetricEncryption, SymetricEncryption, SymetricallyEncryptedBit};
 use crate::dghv::symetric_bit_encryption::initial_noise_size;
@@ -19,12 +20,13 @@ impl<const N: usize> AsymetricallyEncryptedBit<N> {
 impl<const N: usize> AsymetricEncryption for AsymetricallyEncryptedBit<N> {
 	type MessageType = bool;
 	type PublicKeyType = [SymetricallyEncryptedBit; N];
-	type PrivateKeyType = BigInt;
+	type PrivateKeyType = <SymetricallyEncryptedBit as SymetricEncryption>::KeyType;
 
 	fn key_gen() -> (Self::PublicKeyType, Self::PrivateKeyType) {
 		let sk = SymetricallyEncryptedBit::key_gen();
 
-		let pk: [SymetricallyEncryptedBit; N] = core::array::from_fn(|_| SymetricallyEncryptedBit::encrypt(false, &sk));
+		let pk: [SymetricallyEncryptedBit; N] = 
+			core::array::from_fn(|_| SymetricallyEncryptedBit::encrypt(false, &sk));
 
 		return (pk, sk);
 	}
@@ -32,10 +34,13 @@ impl<const N: usize> AsymetricEncryption for AsymetricallyEncryptedBit<N> {
 	fn encrypt(m: bool, p: &Self::PublicKeyType) -> Self {
 		let mut rng = rand::thread_rng();
 
-		let mut ret = p[0].cipher();
-		for i in 1..N {
+		let mut nb_zeros_included = 0;
+		let mut ret = 
+			<SymetricallyEncryptedBit as SymetricEncryption>::KeyType::zero();
+		for pi in p {
 			if rng.gen_bool(0.5) {
-				ret = ret + &p[i].cipher();
+				ret = ret + &pi.cipher();
+				nb_zeros_included += 1;
 			}
 		}
 
@@ -48,10 +53,13 @@ impl<const N: usize> AsymetricEncryption for AsymetricallyEncryptedBit<N> {
 		if m {
 			ret += 1;
 		}
-		return AsymetricallyEncryptedBit::new(SymetricallyEncryptedBit::new(ret, (N+1)*p[0].noise()));
+
+		return AsymetricallyEncryptedBit::new(
+			SymetricallyEncryptedBit::new(ret, (nb_zeros_included+1)*p[0].noise())
+		);
 	}
 
-	fn decrypt(&self, sk: &BigInt) -> bool {
+	fn decrypt(&self, sk: &Self::PrivateKeyType) -> bool {
 		self.c.decrypt(sk)
 	}
 }
@@ -60,19 +68,13 @@ impl<'a, const N: usize> Add<&'a AsymetricallyEncryptedBit<N>> for &'a Asymetric
 	type Output = Option<AsymetricallyEncryptedBit<N>>;
 
 	fn add(self, other: &'a AsymetricallyEncryptedBit<N>) -> Self::Output {
-		match &self.c + &other.c {
-			None => None,
-			Some(c) => Some(AsymetricallyEncryptedBit::<N>::new(c))
-		}
+		Some(AsymetricallyEncryptedBit::<N>::new((&self.c + &other.c)?))
 	}
 }
 impl<'a, const N: usize> Mul<&'a AsymetricallyEncryptedBit<N>> for &'a AsymetricallyEncryptedBit<N> {
 	type Output = Option<AsymetricallyEncryptedBit<N>>;
 
 	fn mul(self, other: &'a AsymetricallyEncryptedBit<N>) -> Self::Output {
-		match &self.c * &other.c {
-			None => None,
-			Some(c) => Some(AsymetricallyEncryptedBit::<N>::new(c))
-		}
+		Some(AsymetricallyEncryptedBit::<N>::new((&self.c * &other.c)?))
 	}
 }

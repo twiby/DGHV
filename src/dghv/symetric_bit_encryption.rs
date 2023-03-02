@@ -101,7 +101,7 @@ impl<'a> Add<&'a SymetricallyEncryptedBit> for &'a SymetricallyEncryptedBit {
 		return Some(SymetricallyEncryptedBit::new(&self.c + &other.c, noise));
 	}
 }
-impl<'a> Mul<&'a SymetricallyEncryptedBit>for &'a SymetricallyEncryptedBit {
+impl<'a> Mul<&'a SymetricallyEncryptedBit> for &'a SymetricallyEncryptedBit {
 	type Output = Option<SymetricallyEncryptedBit>;
 
 	fn mul(self, other: &'a SymetricallyEncryptedBit) -> Self::Output {
