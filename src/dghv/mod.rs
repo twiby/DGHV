@@ -41,5 +41,8 @@ pub use asymetric_bit_encryption::AsymetricallyEncryptedBit;
 mod asymetric_byte_encryption;
 pub use asymetric_byte_encryption::AsymetricallyEncryptedByte;
 
+mod asymmetric_integer_encryption;
+pub use asymmetric_integer_encryption::AsymetricallyEncryptedInteger;
+
 
 

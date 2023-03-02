@@ -1,6 +1,6 @@
 use num_bigint::ToBigInt;
 
-use crate::dghv::{SymetricEncryption, AsymetricEncryption, SymetricallyEncryptedByte, AsymetricallyEncryptedByte, SymetricallyEncryptedInteger};
+use crate::dghv::{SymetricEncryption, AsymetricEncryption, SymetricallyEncryptedByte, AsymetricallyEncryptedByte, SymetricallyEncryptedInteger, AsymetricallyEncryptedInteger};
 use crate::dghv::{ETA, SymetricallyEncryptedBit, AsymetricallyEncryptedBit};
 
 #[test]
@@ -104,6 +104,16 @@ fn asym_byte_decrypt_test() {
 
 	for n in 0u8..=255u8 {
 		let m = AsymetricallyEncryptedByte::encrypt(n, &pk).decrypt(&sk);
+		assert_eq!(n, m);
+	}
+}
+
+#[test]
+fn asym_usize_decrypt_test() {
+	let (pk, sk) = AsymetricallyEncryptedInteger::<256, 1024>::key_gen();
+
+	for n in 950..1024 {
+		let m = AsymetricallyEncryptedInteger::encrypt(n, &pk).decrypt(&sk);
 		assert_eq!(n, m);
 	}
 }
@@ -255,6 +265,29 @@ fn asym_byte_addition_multiplication() {
 		for m in 0u8..16u8 {
 			let c1 = AsymetricallyEncryptedByte::encrypt(n, &pk);
 			let c2 = AsymetricallyEncryptedByte::encrypt(m, &pk);
+
+			assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), n*m);
+		}
+	}
+}
+
+#[test]
+fn asym_usize_addition_multiplication() {
+	let (pk, sk) = AsymetricallyEncryptedInteger::<10, 1024>::key_gen();
+
+	for n in 900..950 {
+		for m in 0..50 {
+			let c1 = AsymetricallyEncryptedInteger::encrypt(n, &pk);
+			let c2 = AsymetricallyEncryptedInteger::encrypt(m, &pk);
+
+			assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), n+m);
+		}
+	}
+
+	for n in 0..16 {
+		for m in 0..16 {
+			let c1 = AsymetricallyEncryptedInteger::encrypt(n, &pk);
+			let c2 = AsymetricallyEncryptedInteger::encrypt(m, &pk);
 
 			assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), n*m);
 		}
