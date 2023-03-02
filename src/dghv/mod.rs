@@ -29,8 +29,11 @@ pub trait AsymetricEncryption {
 mod symetric_bit_encryption;
 pub use symetric_bit_encryption::SymetricallyEncryptedBit;
 
+mod symetric_byte_encryption;
+pub use symetric_byte_encryption::SymetricallyEncryptedByte;
+
 mod symetric_integer_encryption;
-pub use symetric_integer_encryption::SymetricallyEncryptedByte;
+pub use symetric_integer_encryption::SymetricallyEncryptedInteger;
 
 mod asymetric_bit_encryption;
 pub use asymetric_bit_encryption::AsymetricallyEncryptedBit;

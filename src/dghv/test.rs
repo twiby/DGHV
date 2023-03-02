@@ -1,7 +1,6 @@
 use num_bigint::ToBigInt;
-use num_integer::gcd;
 
-use crate::dghv::{SymetricEncryption, AsymetricEncryption, SymetricallyEncryptedByte, AsymetricallyEncryptedByte};
+use crate::dghv::{SymetricEncryption, AsymetricEncryption, SymetricallyEncryptedByte, AsymetricallyEncryptedByte, SymetricallyEncryptedInteger};
 use crate::dghv::{ETA, SymetricallyEncryptedBit, AsymetricallyEncryptedBit};
 
 #[test]
@@ -30,6 +29,21 @@ fn key_gen_byte_test() {
 	let key = SymetricallyEncryptedByte::key_gen();
 
 	assert!(&key % 256 != 0.to_bigint().unwrap());
+	assert!(key >= min);
+	assert!(key < max);
+}
+
+#[test]
+fn key_gen_usize_test() {
+	let mut min  = 2.to_bigint().unwrap();
+	let mut max  = 2.to_bigint().unwrap();
+
+	min = min.pow((ETA-1).try_into().unwrap());
+	max = max.pow((ETA).try_into().unwrap());
+
+	let key = SymetricallyEncryptedInteger::<1024>::key_gen();
+
+	assert!(&key % 1024 != 0.to_bigint().unwrap());
 	assert!(key >= min);
 	assert!(key < max);
 }
@@ -70,6 +84,16 @@ fn byte_decrypt_test() {
 
 	for n in 0u8..=255u8 {
 		let m = SymetricallyEncryptedByte::encrypt(n, &p).decrypt(&p);
+		assert_eq!(n, m);
+	}
+}
+
+#[test]
+fn integer_decrypt_test() {
+	let p = SymetricallyEncryptedInteger::<1024>::key_gen();
+
+	for n in 500..1000 {
+		let m = SymetricallyEncryptedInteger::<1024>::encrypt(n, &p).decrypt(&p);
 		assert_eq!(n, m);
 	}
 }
@@ -185,6 +209,29 @@ fn byte_addition_multiplication() {
 		for m in 0u8..16u8 {
 			let c1 = SymetricallyEncryptedByte::encrypt(n, &p);
 			let c2 = SymetricallyEncryptedByte::encrypt(m, &p);
+
+			assert_eq!((&c1 * &c2).unwrap().decrypt(&p), n*m);
+		}
+	}
+}
+
+#[test]
+fn integer_addition_multiplication() {
+	let p = SymetricallyEncryptedInteger::<1024>::key_gen();
+
+	for n in 900..950 {
+		for m in 0..50 {
+			let c1 = SymetricallyEncryptedInteger::<1024>::encrypt(n, &p);
+			let c2 = SymetricallyEncryptedInteger::<1024>::encrypt(m, &p);
+
+			assert_eq!((&c1 + &c2).unwrap().decrypt(&p), n+m);
+		}
+	}
+
+	for n in 0..=32 {
+		for m in 0..32 {
+			let c1 = SymetricallyEncryptedInteger::<1024>::encrypt(n, &p);
+			let c2 = SymetricallyEncryptedInteger::<1024>::encrypt(m, &p);
 
 			assert_eq!((&c1 * &c2).unwrap().decrypt(&p), n*m);
 		}
