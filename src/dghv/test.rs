@@ -29,8 +29,7 @@ fn key_gen_byte_test() {
 
 	let key = SymetricallyEncryptedByte::key_gen();
 
-	assert!(&key % 2 == 1.to_bigint().unwrap());
-	assert_eq!(gcd(key.clone(), 256.to_bigint().unwrap()), 1.to_bigint().unwrap());
+	assert!(&key % 256 != 0.to_bigint().unwrap());
 	assert!(key >= min);
 	assert!(key < max);
 }

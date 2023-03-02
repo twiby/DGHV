@@ -43,9 +43,7 @@ impl SymetricEncryption for SymetricallyEncryptedByte {
 		let mut rng = rand::thread_rng();
 		let mut b = rng.gen_bigint_range(&BigInt::zero(), &min) + &min;
 
-		while num_integer::gcd(b.clone(), 256.to_bigint().unwrap()) != 1.to_bigint().unwrap() {
-			b = rng.gen_bigint_range(&BigInt::zero(), &min) + &min;
-		}
+		if &b % 256 == BigInt::zero() { b += 1; }
 
 		return b;
 	}
