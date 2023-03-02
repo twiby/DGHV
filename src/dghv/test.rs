@@ -1,6 +1,7 @@
 use num_bigint::ToBigInt;
+use num_integer::gcd;
 
-use crate::dghv::{SymetricEncryption, AsymetricEncryption};
+use crate::dghv::{SymetricEncryption, AsymetricEncryption, SymetricallyEncryptedByte};
 use crate::dghv::{ETA, SymetricallyEncryptedBit, AsymetricallyEncryptedBit};
 
 #[test]
@@ -14,6 +15,22 @@ fn key_gen_test() {
 	let key = SymetricallyEncryptedBit::key_gen();
 
 	assert!(&key % 2 == 1.to_bigint().unwrap());
+	assert!(key >= min);
+	assert!(key < max);
+}
+
+#[test]
+fn key_gen_byte_test() {
+	let mut min  = 2.to_bigint().unwrap();
+	let mut max  = 2.to_bigint().unwrap();
+
+	min = min.pow((ETA-1).try_into().unwrap());
+	max = max.pow((ETA).try_into().unwrap());
+
+	let key = SymetricallyEncryptedByte::key_gen();
+
+	assert!(&key % 2 == 1.to_bigint().unwrap());
+	assert_eq!(gcd(key.clone(), 256.to_bigint().unwrap()), 1.to_bigint().unwrap());
 	assert!(key >= min);
 	assert!(key < max);
 }
@@ -46,6 +63,16 @@ fn asymetric_decrypt_test() {
 
 	let f = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk).decrypt(&sk);
 	assert!(f == false);
+}
+
+#[test]
+fn byte_decrypt_test() {
+	let p = SymetricallyEncryptedByte::key_gen();
+
+	for n in 0u8..=255u8 {
+		let m = SymetricallyEncryptedByte::encrypt(n, &p).decrypt(&p);
+		assert_eq!(n, m);
+	}
 }
 
 #[test]
@@ -130,6 +157,29 @@ fn asymetric_mutiplication() {
 	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
 	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
 	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), true);
+}
+
+#[test]
+fn byte_addition_multiplication() {
+	let p = SymetricallyEncryptedBit::key_gen();
+
+	for n in 100u8..150u8 {
+		for m in 0u8..50u8 {
+			let c1 = SymetricallyEncryptedByte::encrypt(n, &p);
+			let c2 = SymetricallyEncryptedByte::encrypt(m, &p);
+
+			assert_eq!((&c1 + &c2).unwrap().decrypt(&p), n+m);
+		}
+	}
+
+	for n in 0u8..=16u8 {
+		for m in 0u8..16u8 {
+			let c1 = SymetricallyEncryptedByte::encrypt(n, &p);
+			let c2 = SymetricallyEncryptedByte::encrypt(m, &p);
+
+			assert_eq!((&c1 * &c2).unwrap().decrypt(&p), n*m);
+		}
+	}
 }
 
 #[test]
