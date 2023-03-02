@@ -1,6 +1,8 @@
-use num_bigint::RandBigInt;
 use core::ops::{Add, Mul};
-use num_bigint::BigInt;
+
+use rand::Rng;
+use num_bigint::{BigInt, RandBigInt};
+
 use crate::dghv::{AsymetricEncryption, SymetricEncryption, SymetricallyEncryptedBit};
 use crate::dghv::symetric_bit_encryption::initial_noise_size;
 
@@ -28,15 +30,18 @@ impl<const N: usize> AsymetricEncryption for AsymetricallyEncryptedBit<N> {
 	}
 
 	fn encrypt(m: bool, p: &Self::PublicKeyType) -> Self {
+		let mut rng = rand::thread_rng();
+
 		let mut ret = p[0].cipher();
 		for i in 1..N {
-			ret = ret + &p[i].cipher();
+			if rng.gen_bool(0.5) {
+				ret = ret + &p[i].cipher();
+			}
 		}
-		
+
 		// r is between -p/4 and p/4
 		let min_r = -initial_noise_size();
 		let max_r = initial_noise_size();
-		let mut rng = rand::thread_rng();
 		let r = rng.gen_bigint_range(&min_r, &max_r);
 		ret = &ret + 2*r;
 
