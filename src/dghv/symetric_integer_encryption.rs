@@ -5,7 +5,7 @@ use num_bigint::{BigInt};
 use num_bigint::{ToBigInt, RandBigInt};
 
 use crate::dghv::ETA;
-use crate::dghv::SymetricEncryption;
+use crate::dghv::{SymetricEncryption, EncryptedInteger};
 
 fn key_size() -> BigInt {
 	let mut min = 2.to_bigint().unwrap();
@@ -29,13 +29,6 @@ pub struct SymetricallyEncryptedInteger<const N: usize> {
 impl<const N: usize> SymetricallyEncryptedInteger<N> {
 	pub fn new(c: BigInt, n: BigInt) -> SymetricallyEncryptedInteger<N> {
 		SymetricallyEncryptedInteger{c:c, noise_size:n}
-	}
-
-	pub fn cipher(&self) -> BigInt {
-		self.c.clone()
-	}
-	pub fn noise(&self) -> BigInt {
-		self.noise_size.clone()
 	}
 
 	pub fn encrypt_usize(message: usize, p: &BigInt) -> SymetricallyEncryptedInteger<N> {
@@ -67,6 +60,18 @@ impl<const N: usize> SymetricallyEncryptedInteger<N> {
 		}
 
 		return TryInto::<usize>::try_into(ret.magnitude()).unwrap();
+	}
+}
+
+impl<const N: usize> EncryptedInteger<N> for SymetricallyEncryptedInteger<N> {
+	type CipherType = BigInt;
+	type NoiseType = BigInt;
+
+	fn cipher(&self) -> &BigInt {
+		&self.c
+	}
+	fn noise_level(&self) -> &BigInt {
+		&self.noise_size
 	}
 }
 

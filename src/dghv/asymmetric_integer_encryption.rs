@@ -2,9 +2,9 @@ use core::ops::{Add, Mul};
 
 use rand::Rng;
 use num_traits::Zero;
-use num_bigint::RandBigInt;
+use num_bigint::{BigInt, RandBigInt};
 
-use crate::dghv::{AsymetricEncryption, SymetricEncryption, SymetricallyEncryptedInteger};
+use crate::dghv::{AsymetricEncryption, SymetricEncryption, EncryptedInteger, SymetricallyEncryptedInteger};
 use crate::dghv::symetric_integer_encryption::initial_noise_size;
 
 pub struct AsymetricallyEncryptedInteger<const NB_ZEROS: usize, const NOISE_FACTOR: usize> {
@@ -39,13 +39,13 @@ impl<const NB_ZEROS: usize, const NOISE_FACTOR: usize> AsymetricEncryption for A
 			<SymetricallyEncryptedInteger<NOISE_FACTOR> as SymetricEncryption>::KeyType::zero();
 		for pi in p {
 			if rng.gen_bool(0.5) {
-				ret = ret + &pi.cipher();
+				ret = ret + pi.cipher();
 				nb_zeros_included += 1;
 			}
 		}
 		
 		if nb_zeros_included == 0 {
-			ret = ret + &p[0].cipher();
+			ret = ret + p[0].cipher();
 			nb_zeros_included = 1;
 		}
 
@@ -58,13 +58,21 @@ impl<const NB_ZEROS: usize, const NOISE_FACTOR: usize> AsymetricEncryption for A
 		ret += m;
 
 		return AsymetricallyEncryptedInteger::new(
-			SymetricallyEncryptedInteger::<NOISE_FACTOR>::new(ret, (nb_zeros_included+1)*p[0].noise())
+			SymetricallyEncryptedInteger::<NOISE_FACTOR>::new(ret, (nb_zeros_included+1)*p[0].noise_level())
 		);
 	}
 
 	fn decrypt(&self, sk: &Self::PrivateKeyType) -> usize {
 		self.c.decrypt(sk)
 	}
+}
+
+impl<const NB_ZEROS: usize, const NOISE_FACTOR: usize> EncryptedInteger<NOISE_FACTOR> for AsymetricallyEncryptedInteger<NB_ZEROS, NOISE_FACTOR> {
+	type NoiseType = BigInt;
+	type CipherType = BigInt;
+
+	fn cipher(&self) -> &BigInt { self.c.cipher() }
+	fn noise_level(&self) -> &BigInt { self.c.noise_level() }
 }
 
 impl<'a, const NB_ZEROS: usize, const NOISE_FACTOR: usize> Add<&'a AsymetricallyEncryptedInteger<NB_ZEROS, NOISE_FACTOR>> for &'a AsymetricallyEncryptedInteger<NB_ZEROS, NOISE_FACTOR> {

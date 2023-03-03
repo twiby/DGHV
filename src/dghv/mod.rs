@@ -26,6 +26,14 @@ pub trait AsymetricEncryption {
 	fn decrypt(&self, sk: &Self::PrivateKeyType) -> Self::MessageType;
 }
 
+pub trait EncryptedInteger<const N: usize> {
+	type CipherType;
+	type NoiseType;
+
+	fn cipher(&self) -> &Self::CipherType;
+	fn noise_level(&self) -> &Self::NoiseType;
+}
+
 mod symetric_integer_encryption;
 pub use symetric_integer_encryption::SymetricallyEncryptedInteger;
 
