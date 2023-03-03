@@ -1,7 +1,12 @@
 use num_bigint::ToBigInt;
 
-use crate::dghv::{SymetricEncryption, AsymetricEncryption, SymetricallyEncryptedByte, AsymetricallyEncryptedByte, SymetricallyEncryptedInteger, AsymetricallyEncryptedInteger};
-use crate::dghv::{ETA, SymetricallyEncryptedBit, AsymetricallyEncryptedBit};
+use crate::dghv::{SymetricEncryption, AsymetricEncryption, SymetricallyEncryptedInteger, AsymetricallyEncryptedInteger};
+use crate::dghv::{ETA};
+
+type SymetricallyEncryptedBit = SymetricallyEncryptedInteger<2>;
+type SymetricallyEncryptedByte = SymetricallyEncryptedInteger<256>;
+type AsymetricallyEncryptedBit<const N: usize> = AsymetricallyEncryptedInteger<N, 2>;
+type AsymetricallyEncryptedByte<const N: usize> = AsymetricallyEncryptedInteger<N, 256>;
 
 #[test]
 fn key_gen_test() {
@@ -52,37 +57,37 @@ fn key_gen_usize_test() {
 fn encrypt_test() {
 	let p = SymetricallyEncryptedBit::key_gen();
 
-	let _ = SymetricallyEncryptedBit::encrypt(true, &p);
-	let _ = SymetricallyEncryptedBit::encrypt(false, &p);
+	let _ = SymetricallyEncryptedBit::encrypt(1, &p);
+	let _ = SymetricallyEncryptedBit::encrypt(0, &p);
 }
 
 #[test]
 fn decrypt_test() {
 	let p = SymetricallyEncryptedBit::key_gen();
 
-	let t = SymetricallyEncryptedBit::encrypt(true, &p).decrypt(&p);
-	assert!(t == true);
+	let t = SymetricallyEncryptedBit::encrypt(1, &p).decrypt(&p);
+	assert!(t == 1);
 
-	let f = SymetricallyEncryptedBit::encrypt(false, &p).decrypt(&p);
-	assert!(f == false);
+	let f = SymetricallyEncryptedBit::encrypt(0, &p).decrypt(&p);
+	assert!(f == 0);
 }
 
 #[test]
 fn asymetric_decrypt_test() {
 	let (pk, sk) = AsymetricallyEncryptedBit::<10>::key_gen();
 
-	let t = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk).decrypt(&sk);
-	assert!(t == true);
+	let t = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk).decrypt(&sk);
+	assert!(t == 1);
 
-	let f = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk).decrypt(&sk);
-	assert!(f == false);
+	let f = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk).decrypt(&sk);
+	assert!(f == 0);
 }
 
 #[test]
 fn byte_decrypt_test() {
 	let p = SymetricallyEncryptedByte::key_gen();
 
-	for n in 0u8..=255u8 {
+	for n in 0..=255 {
 		let m = SymetricallyEncryptedByte::encrypt(n, &p).decrypt(&p);
 		assert_eq!(n, m);
 	}
@@ -102,7 +107,7 @@ fn integer_decrypt_test() {
 fn asym_byte_decrypt_test() {
 	let (pk, sk) = AsymetricallyEncryptedByte::<256>::key_gen();
 
-	for n in 0u8..=255u8 {
+	for n in 0..=255 {
 		let m = AsymetricallyEncryptedByte::encrypt(n, &pk).decrypt(&sk);
 		assert_eq!(n, m);
 	}
@@ -122,92 +127,92 @@ fn asym_usize_decrypt_test() {
 fn addition() {
 	let p = SymetricallyEncryptedBit::key_gen();
 
-	let mut c1 = SymetricallyEncryptedBit::encrypt(false, &p);
-	let mut c2 = SymetricallyEncryptedBit::encrypt(false, &p);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), false);
+	let mut c1 = SymetricallyEncryptedBit::encrypt(0, &p);
+	let mut c2 = SymetricallyEncryptedBit::encrypt(0, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), 0);
 
-	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
-	c2 = SymetricallyEncryptedBit::encrypt(false, &p);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), true);
+	c1 = SymetricallyEncryptedBit::encrypt(1, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(0, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), 1);
 
-	c1 = SymetricallyEncryptedBit::encrypt(false, &p);
-	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), true);
+	c1 = SymetricallyEncryptedBit::encrypt(0, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(1, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), 1);
 
-	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
-	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), false);
+	c1 = SymetricallyEncryptedBit::encrypt(1, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(1, &p);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&p), 0);
 }
 
 #[test]
 fn mutiplication() {
 	let p = SymetricallyEncryptedBit::key_gen();
 
-	let mut c1 = SymetricallyEncryptedBit::encrypt(false, &p);
-	let mut c2 = SymetricallyEncryptedBit::encrypt(false, &p);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), false);
+	let mut c1 = SymetricallyEncryptedBit::encrypt(0, &p);
+	let mut c2 = SymetricallyEncryptedBit::encrypt(0, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), 0);
 
-	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
-	c2 = SymetricallyEncryptedBit::encrypt(false, &p);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), false);
+	c1 = SymetricallyEncryptedBit::encrypt(1, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(0, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), 0);
 
-	c1 = SymetricallyEncryptedBit::encrypt(false, &p);
-	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), false);
+	c1 = SymetricallyEncryptedBit::encrypt(0, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(1, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), 0);
 
-	c1 = SymetricallyEncryptedBit::encrypt(true, &p);
-	c2 = SymetricallyEncryptedBit::encrypt(true, &p);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), true);
+	c1 = SymetricallyEncryptedBit::encrypt(1, &p);
+	c2 = SymetricallyEncryptedBit::encrypt(1, &p);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&p), 1);
 }
 
 #[test]
 fn asymetric_addition() {
 	let (pk, sk) = AsymetricallyEncryptedBit::<10>::key_gen();
 
-	let mut c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	let mut c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), false);
+	let mut c1 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	let mut c2 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), 0);
 
-	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), true);
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), 1);
 
-	c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), true);
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), 1);
 
-	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), false);
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	assert_eq!((&c1 + &c2).unwrap().decrypt(&sk), 0);
 }
 
 #[test]
 fn asymetric_mutiplication() {
 	let (pk, sk) = AsymetricallyEncryptedBit::<10>::key_gen();
 
-	let mut c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	let mut c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), false);
+	let mut c1 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	let mut c2 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), 0);
 
-	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	c2 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), false);
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), 0);
 
-	c1 = AsymetricallyEncryptedBit::<10>::encrypt(false, &pk);
-	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), false);
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(0, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), 0);
 
-	c1 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	c2 = AsymetricallyEncryptedBit::<10>::encrypt(true, &pk);
-	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), true);
+	c1 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	c2 = AsymetricallyEncryptedBit::<10>::encrypt(1, &pk);
+	assert_eq!((&c1 * &c2).unwrap().decrypt(&sk), 1);
 }
 
 #[test]
 fn byte_addition_multiplication() {
 	let p = SymetricallyEncryptedByte::key_gen();
 
-	for n in 100u8..150u8 {
-		for m in 0u8..50u8 {
+	for n in 100..150 {
+		for m in 0..50 {
 			let c1 = SymetricallyEncryptedByte::encrypt(n, &p);
 			let c2 = SymetricallyEncryptedByte::encrypt(m, &p);
 
@@ -215,8 +220,8 @@ fn byte_addition_multiplication() {
 		}
 	}
 
-	for n in 0u8..=16u8 {
-		for m in 0u8..16u8 {
+	for n in 0..=16 {
+		for m in 0..16 {
 			let c1 = SymetricallyEncryptedByte::encrypt(n, &p);
 			let c2 = SymetricallyEncryptedByte::encrypt(m, &p);
 
@@ -252,8 +257,8 @@ fn integer_addition_multiplication() {
 fn asym_byte_addition_multiplication() {
 	let (pk, sk) = AsymetricallyEncryptedByte::<10>::key_gen();
 
-	for n in 100u8..150u8 {
-		for m in 0u8..50u8 {
+	for n in 100..150 {
+		for m in 0..50 {
 			let c1 = AsymetricallyEncryptedByte::encrypt(n, &pk);
 			let c2 = AsymetricallyEncryptedByte::encrypt(m, &pk);
 
@@ -261,8 +266,8 @@ fn asym_byte_addition_multiplication() {
 		}
 	}
 
-	for n in 0u8..=16u8 {
-		for m in 0u8..16u8 {
+	for n in 0..=16 {
+		for m in 0..16 {
 			let c1 = AsymetricallyEncryptedByte::encrypt(n, &pk);
 			let c2 = AsymetricallyEncryptedByte::encrypt(m, &pk);
 
@@ -299,8 +304,8 @@ fn asym_usize_addition_multiplication() {
 fn noise_blowup() {
 	let p = SymetricallyEncryptedBit::key_gen();
 
-	let mut c1 = SymetricallyEncryptedBit::encrypt(true, &p);
-	let mut c2 = SymetricallyEncryptedBit::encrypt(true, &p);
+	let mut c1 = SymetricallyEncryptedBit::encrypt(1, &p);
+	let mut c2 = SymetricallyEncryptedBit::encrypt(1, &p);
 
 	while let Some(c) = &c1 * &c2 {
 		c1 = c.clone();
@@ -308,6 +313,6 @@ fn noise_blowup() {
 	}
 
 	let none = &c1 * &c2;
-	assert_eq!(none.unwrap().decrypt(&p), true);
+	assert_eq!(none.unwrap().decrypt(&p), 1);
 }
 

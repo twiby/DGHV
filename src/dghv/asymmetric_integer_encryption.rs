@@ -5,7 +5,7 @@ use num_traits::Zero;
 use num_bigint::RandBigInt;
 
 use crate::dghv::{AsymetricEncryption, SymetricEncryption, SymetricallyEncryptedInteger};
-use crate::dghv::symetric_bit_encryption::initial_noise_size;
+use crate::dghv::symetric_integer_encryption::initial_noise_size;
 
 pub struct AsymetricallyEncryptedInteger<const NB_ZEROS: usize, const NOISE_FACTOR: usize> {
 	c: SymetricallyEncryptedInteger<NOISE_FACTOR>

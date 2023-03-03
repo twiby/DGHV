@@ -6,11 +6,17 @@ use num_bigint::{ToBigInt, RandBigInt};
 
 use crate::dghv::ETA;
 use crate::dghv::SymetricEncryption;
-use crate::dghv::symetric_bit_encryption::initial_noise_size;
 
 fn key_size() -> BigInt {
 	let mut min = 2.to_bigint().unwrap();
 	min = min.pow((ETA - 1).try_into().unwrap());
+	return min
+}
+
+pub fn initial_noise_size() -> BigInt {
+	let root = (ETA as f64).sqrt() as usize;
+	let mut min = 2.to_bigint().unwrap();
+	min = min.pow((root-1).try_into().unwrap());
 	return min
 }
 

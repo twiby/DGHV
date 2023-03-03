@@ -26,20 +26,8 @@ pub trait AsymetricEncryption {
 	fn decrypt(&self, sk: &Self::PrivateKeyType) -> Self::MessageType;
 }
 
-mod symetric_bit_encryption;
-pub use symetric_bit_encryption::SymetricallyEncryptedBit;
-
-mod symetric_byte_encryption;
-pub use symetric_byte_encryption::SymetricallyEncryptedByte;
-
 mod symetric_integer_encryption;
 pub use symetric_integer_encryption::SymetricallyEncryptedInteger;
-
-mod asymetric_bit_encryption;
-pub use asymetric_bit_encryption::AsymetricallyEncryptedBit;
-
-mod asymetric_byte_encryption;
-pub use asymetric_byte_encryption::AsymetricallyEncryptedByte;
 
 mod asymmetric_integer_encryption;
 pub use asymmetric_integer_encryption::AsymetricallyEncryptedInteger;
